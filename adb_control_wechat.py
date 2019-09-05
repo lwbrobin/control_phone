@@ -2,15 +2,26 @@
 import time
 import subprocess
 import xlrd
+import numpy
+from PIL import Image
 
-#每次操作的间隔时间取决于手机配置，配置越高时间越短
-sleep_time = 0.5
-#用popen设置shell=True不会弹出cmd框
+# 判断图片是找到的还是没找到的
+def is_image_find_or_not(image):  #image为numpy.array(Image.open(file_path))对象
+    if (image[1000:2000].mean() < 248):  # 1000到2000行像素偏白则说明找到了
+        return True
+    else:       # 1000到2000行像素偏黑则说明没找到
+        return False
+
+sleep_time = 0.7    #每次操作的间隔时间取决于手机配置，配置越高时间越短
 
 soursebook = xlrd.open_workbook('d:\\123.xlsx')
 src_sheet = soursebook.sheet_by_index(0)
 numbers = src_sheet.col_values(0)
 
+#用popen设置shell=True不会弹出cmd框
+process = subprocess.Popen('adb shell rm -r /sdcard/tmp/', shell=True)  #删除tmp文件夹
+time.sleep(2 * sleep_time)
+process = subprocess.Popen('adb shell mkdir /sdcard/tmp/', shell=True)  #创建tmp文件夹用于存放截图
 #进入添加朋友界面
 #回到桌面
 process = subprocess.Popen('adb shell input keyevent 3', shell=True)
@@ -35,19 +46,16 @@ for num in numbers:     #循环加好友
     time.sleep(2 * sleep_time)
     #点击搜索
     process = subprocess.Popen('adb shell input tap 500 300', shell=True)
-    time.sleep(2*sleep_time)
-    #截屏并保存到sd卡
-    process = subprocess.Popen('adb shell screencap /sdcard/pp/' + strnum + '.png', shell=True)
+    time.sleep(3*sleep_time)
+    filepath =f'/sdcard/tmp/{strnum}.png'       #保存截图的sd卡路径
+    process = subprocess.Popen('adb shell screencap '+ filepath, shell=True)    #截屏并保存到sd卡
     time.sleep(sleep_time)
-    #返回
-    process = subprocess.Popen('adb shell input tap 70 132', shell=True)
+    process = subprocess.Popen('adb pull '+ filepath + ' F:\\screencap', shell=True)    #把截屏从sd卡拷到F:\\screencap
     time.sleep(sleep_time)
-
-#把截屏图片拷贝到电脑F:\\screencap文件夹下
-process = subprocess.Popen('adb pull /sdcard/pp/ F:\\screencap', shell=True)
-#soursebook.close()
-
-
-
-
+    process = subprocess.Popen('adb shell input tap 70 132', shell=True)    #返回一次
+    time.sleep(sleep_time*0.5)
+    image = numpy.array(Image.open(f'F:\\screencap\\{strnum}.png'))
+    if(is_image_find_or_not(image)):
+        process = subprocess.Popen('adb shell input tap 70 132', shell=True)  # 找到的话需要再返回一次
+        time.sleep(sleep_time)
 
