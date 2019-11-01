@@ -5,6 +5,7 @@ import xlrd
 import numpy
 from PIL import Image
 
+#使用方法：修改第一列为手机号的excel文件的文件路径，再修改存放截图的文件路径。同时根据手机运行速度调整sleep_time值
 # 判断图片是找到的还是没找到的
 def is_image_find_or_not(image):  #image为numpy.array(Image.open(file_path))对象
     if (image[1000:2000].mean() < 248):  # 1000到2000行像素偏白则说明找到了
@@ -50,7 +51,7 @@ for num in numbers:     #循环加好友
     filepath =f'/sdcard/tmp/{strnum}.png'       #保存截图的sd卡路径
     process = subprocess.Popen('adb shell screencap '+ filepath, shell=True)    #截屏并保存到sd卡
     time.sleep(sleep_time)
-    process = subprocess.Popen('adb pull '+ filepath + ' F:\\screencap', shell=True)    #把截屏从sd卡拷到F:\\screencap
+    process = subprocess.Popen('adb pull '+ filepath + ' F:\\screencap', shell=True)    #把截屏从sd卡拷到F:\\screencap(需要先创建此文件夹)
     time.sleep(sleep_time)
     process = subprocess.Popen('adb shell input tap 70 132', shell=True)    #返回一次
     time.sleep(sleep_time*0.5)
